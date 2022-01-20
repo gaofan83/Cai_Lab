@@ -1,0 +1,3 @@
+/usr/local/bin//HiC-Pro_3.1.0/bin/HiC-Pro -i /home/fgao/Data_hiC/GSE96107/ES -o /home/fgao/Data_hiC/GSE96107/hic_out -c config-hicpro.txt
+/usr/local/bin//HiC-Pro_3.1.0/bin/utils/hicpro2juicebox.sh -i /home/fgao/Data_hiC/GSE96107/hic_out/hic_results/data/S2/S2.allValidPairs \
+	-g mm10 -j /home/fgao/software/juicer_tools.jar -o juicebox_S2 -r MboI_resfrag_mm10.bed
