@@ -1,0 +1,6 @@
+B_M
+B_P
+G_B
+G_M
+G_P
+M_P
