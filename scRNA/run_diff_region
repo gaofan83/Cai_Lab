@@ -1,0 +1,19 @@
+while read line;
+do
+awk '{if($3=="AN1" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_AN1.txt
+awk '{if($3=="AN2" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_AN2.txt
+awk '{if($3=="COP" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_COP.txt
+awk '{if($3=="CUL" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_CUL.txt
+awk '{if($3=="F" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_F.txt
+awk '{if($3=="I" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_I.txt
+awk '{if($3=="II" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_II.txt
+awk '{if($3=="III" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_III.txt
+awk '{if($3=="IX" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_IX.txt
+awk '{if($3=="PF" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_PF.txt
+awk '{if($3=="PRM" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_PRM.txt
+awk '{if($3=="SIM" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_SIM.txt
+awk '{if($3=="VI" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_VI.txt
+awk '{if($3=="VII" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_VII.txt
+awk '{if($3=="VIII" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_VIII.txt
+awk '{if($3=="X" && $8 < 0.05) print $2}' DESeq2_${line}.txt > ${line}_X.txt
+done < sample_ID.txt
