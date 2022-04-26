@@ -1,0 +1,85 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+
+library(Seurat)
+library(Matrix)
+library(Matrix.utils)
+
+data_cb<-Read10X(data.dir = "/home/fgao/Data_single_cell/Cai_Lab/GSE165371_cb_adult_mouse", gene.column=1)
+
+#use genes expressed in 0.5% cells
+sample_cb <- CreateSeuratObject(counts = data_cb, project = "CB")
+meta<-read.csv("/home/fgao/Data_single_cell/Cai_Lab/GSE165371_cb_adult_mouse/cerebellum-atlas-analysis/data/cluster_metadata.csv", header=T)
+rep<-do.call(rbind, strsplit(colnames(sample_cb), "_"))
+
+sample_cb$sample<-paste(rep[,1], rep[,2], sep="_")
+sample_cb$cluster<-meta$cluster
+Idents(sample_cb)<-meta$region
+
+# Replicate based analysis for selected samples ("VIIa_F002", "VIIa_M002", "VIIa_M006", "VIIb_F002", "VIIb_M002", "VIIb_M006", "VIIc_M002", "VIId_M002")
+sample_cb_sel<-subset(sample_cb, subset = sample == c("VIIa_F002", "VIIa_M002", "VIIa_M006", "VIIb_F002", "VIIb_M002", "VIIb_M006", "VIIc_M002", "VIId_M002"))
+
+
+sample_cb_sel_mtx<-sample_cb_sel@assays$RNA@counts 
+#group_sel<-as.character(sample_cb_sel$sample)
+sample_cb_sel_mtx_t<-data.frame(t(sample_cb_sel_mtx))
+sample_cb_sel_mtx_t$sample<-as.character(sample_cb_sel$sample)
+sample_cb_sel_mtx_t$cluster<-as.character(sample_cb_sel$cluster)
+
+# aggregate by two factors "sample", "cluster"
+sample_cb_sel_mtx.agg <- aggregate(sample_cb_sel_mtx_t[1:nrow(sample_cb_sel_mtx)], by=list(sample_cb_sel_mtx_t$sample, sample_cb_sel_mtx_t$cluster), sum)
+
+sample_cb_sel_agg <- t(sample_cb_sel_mtx.agg[,c(3:ncol(sample_cb_sel_mtx.agg))])
+#colnames(sample_cb_sel_agg) <- sample_cb_sel_mtx.agg$group_sel
+
+meta_cb_sel<-data.frame(ID=sample_cb_sel_mtx.agg$Group.1, CLUSTER=sample_cb_sel_mtx.agg$Group.2)
+
+# "Granule", "Bergmann", "MLI1", and "Purkinje" DEG analysis
+
+data_path<-"/home/fgao/Data_single_cell/Cai_Lab/GSE165371_cb_adult_mouse/"
+library(DESeq2)  
+dds1 <- DESeqDataSetFromMatrix(countData=sample_cb_sel_agg, colData=meta_cb_sel, design=~CLUSTER)
+dds1 <- DESeq(dds1)
+
+res1 <- results(dds1, contrast = c("CLUSTER", "Bergmann", "MLI1"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_Bergmann_MLI1.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_Bergmann_MLI1_sig.txt", sep=""), quote=F, sep="\t")
+
+res1 <- results(dds1, contrast = c("CLUSTER", "Bergmann", "Purkinje"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_Bergmann_Purkinje.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_Bergmann_Purkinje_sig.txt", sep=""), quote=F, sep="\t")
+
+res1 <- results(dds1, contrast = c("CLUSTER", "Granule", "Bergmann"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_Granule_Bergmann.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_Granule_Bergmann_sig.txt", sep=""), quote=F, sep="\t")
+
+res1 <- results(dds1, contrast = c("CLUSTER", "Granule", "MLI1"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_Granule_MLI1.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_Granule_MLI1_sig.txt", sep=""), quote=F, sep="\t")
+
+res1 <- results(dds1, contrast = c("CLUSTER", "Granule", "Purkinje"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_Granule_Purkinje.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_Granule_Purkinje_sig.txt", sep=""), quote=F, sep="\t")
+
+res1 <- results(dds1, contrast = c("CLUSTER", "MLI1", "Purkinje"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_MLI1_Purkinje.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_MLI1_Purkinje_sig.txt", sep=""), quote=F, sep="\t")
+
+```
+
