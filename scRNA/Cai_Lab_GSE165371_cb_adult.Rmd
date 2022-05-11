@@ -80,5 +80,10 @@ res1_sig = subset(res1, padj<0.05)
 write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_MLI1_Purkinje.txt", sep=""), quote=F, sep="\t")
 write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_MLI1_Purkinje_sig.txt", sep=""), quote=F, sep="\t")
 
+# generate noramlized count matrix
+dds1 <- estimateSizeFactors(dds1)
+normalized_counts <- counts(dds1, normalized=TRUE)
+write.table(rbind(t(meta_cb_sel), normalized_counts), file= paste(data_path, "ensembl_gene_counts_normalized.txt", sep=""), sep="\t", quote=F, col.names=F)
+
 ```
 
