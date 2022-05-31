@@ -1,0 +1,51 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+
+data_path<-"/home/fgao/Data_single_cell/Cai_Lab/mDuxCA/"
+
+library(Seurat)
+library(Matrix)
+library(Matrix.utils)
+
+data_cb<-read.csv(paste(data_path, "mDuxCA_all_reps_intron_raw_count.csv", sep=""), header=T, row.names=1)
+
+# aggregate by two factors "rep", "leiden"
+data_cb.agg <- aggregate(data_cb[, c(3:ncol(data_cb))], by=list(data_cb$rep, data_cb$leiden), sum)
+sample_agg <- t(data_cb.agg[,c(3:ncol(data_cb))])
+meta_cb<-data.frame(ID=data_cb.agg$Group.1, CLUSTER=paste("Cluster",data_cb.agg$Group.2, sep=""))
+colnames(sample_agg)<-meta_cb$CLUSTER
+write.table(t(sample_agg), file=paste(data_path, "ensembl_gene_counts.txt", sep=""), quote=F, sep="\t", col.names=F)
+
+library(DESeq2)  
+dds1 <- DESeqDataSetFromMatrix(countData=sample_agg, colData=meta_cb, design=~CLUSTER)
+dds1 <- DESeq(dds1)
+
+res1 <- results(dds1, contrast = c("CLUSTER", "Cluster0", "Cluster1"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_Cluster0_Cluster1.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_Cluster0_Cluster1_sig.txt", sep=""), quote=F, sep="\t")
+
+res1 <- results(dds1, contrast = c("CLUSTER", "Cluster0", "Cluster2"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_Cluster0_Cluster2.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_Cluster0_Cluster2_sig.txt", sep=""), quote=F, sep="\t")
+
+res1 <- results(dds1, contrast = c("CLUSTER", "Cluster1", "Cluster2"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_Cluster1_Cluster2.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_Cluster1_Cluster2_sig.txt", sep=""), quote=F, sep="\t")
+
+# generate noramlized count matrix
+dds1 <- estimateSizeFactors(dds1)
+normalized_counts <- counts(dds1, normalized=TRUE)
+write.table(rbind(t(meta_cb), normalized_counts), file= paste(data_path, "ensembl_gene_counts_normalized.txt", sep=""), sep="\t", quote=F, col.names=F)
+
+```
+
