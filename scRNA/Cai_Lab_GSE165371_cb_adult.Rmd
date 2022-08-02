@@ -80,6 +80,18 @@ res1_sig = subset(res1, padj<0.05)
 write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_MLI1_Purkinje.txt", sep=""), quote=F, sep="\t")
 write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_MLI1_Purkinje_sig.txt", sep=""), quote=F, sep="\t")
 
+res1 <- results(dds1, contrast = c("CLUSTER", "MLI1", "MLI2"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_MLI1_MLI2.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_MLI1_MLI2_sig.txt", sep=""), quote=F, sep="\t")
+
+res1 <- results(dds1, contrast = c("CLUSTER", "MLI1", "PLI"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_MLI1_PLI.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_MLI1_PLI_sig.txt", sep=""), quote=F, sep="\t")
+
 # generate noramlized count matrix
 dds1 <- estimateSizeFactors(dds1)
 normalized_counts <- counts(dds1, normalized=TRUE)
@@ -87,3 +99,26 @@ write.table(rbind(t(meta_cb_sel), normalized_counts), file= paste(data_path, "en
 
 ```
 
+```{r}
+
+# MLI2 and PLI clusters merge to MLI2_PLI cluster
+sample_cb_sel_mtx_t2<-sample_cb_sel_mtx_t
+sample_cb_sel_mtx_t2[sample_cb_sel_mtx_t2 == "MLI2" | sample_cb_sel_mtx_t2 == "PLI"] <- "MLI2_PLI"
+
+# aggregate by two factors "sample", "cluster"
+sample_cb_sel_mtx.agg2 <- aggregate(sample_cb_sel_mtx_t2[1:nrow(sample_cb_sel_mtx)], by=list(sample_cb_sel_mtx_t2$sample, sample_cb_sel_mtx_t2$cluster), sum)
+
+sample_cb_sel_agg2 <- t(sample_cb_sel_mtx.agg2[,c(3:ncol(sample_cb_sel_mtx.agg2))])
+
+meta_cb_sel2<-data.frame(ID=sample_cb_sel_mtx.agg2$Group.1, CLUSTER=sample_cb_sel_mtx.agg2$Group.2)
+
+dds2 <- DESeqDataSetFromMatrix(countData=sample_cb_sel_agg2, colData=meta_cb_sel2, design=~CLUSTER)
+dds2 <- DESeq(dds2)
+
+res2 <- results(dds2, contrast = c("CLUSTER", "MLI1", "MLI2_PLI"))
+res2 <- res2[order(res2$padj),]
+res2_sig = subset(res2, padj<0.05)
+write.table(res2, file = paste(data_path, "deg_deseq2_ensemble_MLI1_MLI2-PLI.txt", sep=""), quote=F, sep="\t")
+write.table(res2_sig, file = paste(data_path, "deg_deseq2_ensemble_MLI1_MLI2-PLI_sig.txt", sep=""), quote=F, sep="\t")
+
+```
