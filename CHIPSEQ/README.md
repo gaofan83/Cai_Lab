@@ -1,1 +1,1 @@
-#### A pipeline to process ENCODE and GSE171554 CHIPseq data
+#### A pipeline to process ENCODE, GSE171554, 4Dnucleome CHIPseq data
