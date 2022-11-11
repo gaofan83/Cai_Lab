@@ -1,0 +1,46 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+
+data_path<-"/home/fgao/Data_single_cell/Cai_Lab/DEG_cell_lines/"
+
+library(Seurat)
+library(Matrix)
+library(Matrix.utils)
+
+#aggregate by factor "rep"
+data_es<-read.csv(paste(data_path, "110922_formated_E14_rep1_rep2_intron_count.csv", sep=""), header=T, row.names=1, check.names = FALSE)
+data_es.rep<-aggregate(data_es[, c(5:ncol(data_es))], by=list(data_es$rep), sum)
+
+data_nm<-read.csv(paste(data_path, "110922_formated_NMuMG_rep1_intron_count.csv", sep=""), header=T, row.names=1, check.names = FALSE)
+data_nm.rep<-aggregate(data_nm[, c(3:ncol(data_nm))], by=list(data_nm$rep), sum)
+  
+sample.rep<-merge(t(data_es.rep[,-1]), t(data_nm.rep[,-1]), by=0)
+rownames(sample.rep)<-sample.rep$Row.names
+sample.rep<-sample.rep[,-1]
+colnames(sample.rep)<-c("ES1", "ES2", "NM1")
+write.table(t(sample.rep), file=paste(data_path, "ensembl_gene_counts_rep.txt", sep=""), quote=F, sep="\t")
+
+library(DESeq2)  
+meta_rep<-data.frame(ID=c("ES1", "ES2", "NM1"), GROUP=c("ES", "ES", "NM"))
+dds1 <- DESeqDataSetFromMatrix(countData=sample.rep, colData=meta_rep, design=~GROUP)
+dds1 <- DESeq(dds1)
+
+res1 <- results(dds1, contrast = c("GROUP", "ES", "NM"))
+res1 <- res1[order(res1$padj),]
+res1_sig = subset(res1, padj<0.05)
+write.table(res1, file = paste(data_path, "deg_deseq2_ensemble_ES_NM_rep.txt", sep=""), quote=F, sep="\t")
+write.table(res1_sig, file = paste(data_path, "deg_deseq2_ensemble_ES_NM_sig_rep.txt", sep=""), quote=F, sep="\t")
+
+
+# generate noramlized count matrix
+dds1 <- estimateSizeFactors(dds1)
+normalized_counts <- counts(dds1, normalized=TRUE)
+write.table(rbind(t(meta_rep), normalized_counts), file= paste(data_path, "ensembl_gene_counts_normalized_rep.txt", sep=""), sep="\t", quote=F, col.names=F)
+
+```
+
+
