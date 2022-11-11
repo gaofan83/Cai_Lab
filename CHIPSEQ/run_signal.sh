@@ -18,3 +18,7 @@ awk '{print $1","$6","$12","$18","$24","$30","$36","$42","$48","$54","$60}' scor
 
 echo "POS,H3K27me3_rep1,H3K27me3_rep2,H3K27ac_rep1,H3K27ac_rep2,H3K4me1_rep1,H3K4me1_rep2,H3K4me3_rep1,H3K4me3_rep2,IgG_rep1,IgG_rep2" > GFP_scores.txt
 awk '{print $1","$66","$72","$78","$84","$90","$96","$102","$108","$114","$120}' score_all.tab >> GFP_scores.txt
+
+./bigWigAverageOverBed 4DNFIGYZ56AD.bw genome_bin.bed 4DNFIGYZ56AD.tab
+echo "CHR_ID,LMNB1" > LMNB1_score.txt
+awk '{print $1","$6}' 4DNFIGYZ56AD.tab >> LMNB1_score.txt
