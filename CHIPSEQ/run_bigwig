@@ -1,0 +1,5 @@
+while read line;
+do
+awk '{print $1"\t"$2"\t"$3"\t1"}' ${line}.broadPeak > ${line}.bed
+~/tools/bedGraphToBigWig ${line}.bed ~/tools/mm10_chrom.sizes ${line}.bw
+done < sample_ID.txt
